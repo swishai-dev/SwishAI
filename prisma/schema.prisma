@@ -1,0 +1,98 @@
+// Core entities for the Basketball AI Prediction Agent (Polymarket REST API)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Team {
+  id           String    @id @default(cuid())
+  name         String
+  symbol       String?
+  logoUrl      String?
+  league       String    // NBA, EuroLeague, NCAA
+  homeMatchups Matchup[] @relation("HomeTeam")
+  awayMatchups Matchup[] @relation("AwayTeam")
+}
+
+model Matchup {
+  id              String   @id @default(cuid())
+  externalEventId String   @unique // Polymarket Event ID
+  homeTeamId      String?
+  awayTeamId      String?
+  startTime       DateTime
+  status          String   @default("scheduled") // scheduled, live, completed
+  volume          Float    @default(0)
+  
+  homeTeam        Team?    @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeam        Team?    @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  markets         Market[]
+}
+
+model Market {
+  id               String     @id @default(cuid())
+  externalMarketId String     @unique // Polymarket Market ID
+  matchupId        String?
+  type             String     // MONEYLINE, SPREAD, TOTAL, PROP
+  question         String
+  outcomes         String[]   // e.g., ["Yes", "No"]
+  currentOdds      Json       // JSON blob of outcome prices
+  updatedAt        DateTime   @updatedAt
+  
+  matchup          Matchup?   @relation(fields: [matchupId], references: [id])
+  analyses         Analysis[]
+}
+
+model Analysis {
+  id            String   @id @default(cuid())
+  marketId      String
+  prediction    String
+  probability   Float    // AI's prediction probability (0-1)
+  reasoning     String   @db.Text
+  stateHash     String   // Unique hash of odds + context for cache lookup
+  createdAt     DateTime @default(now())
+  
+  market        Market   @relation(fields: [marketId], references: [id])
+
+  @@index([stateHash])
+  @@index([marketId])
+}
+
+// New models for Basketball Data Layer (US-003)
+
+model Game {
+  id          String   @id @default(cuid())
+  externalId  String   @unique // Polymarket Event ID
+  league      String   // NBA, NCAA, EURO
+  homeTeam    String
+  awayTeam    String
+  startTime   DateTime
+  eventTitle  String
+  status      String   @default("ACTIVE")
+  updatedAt   DateTime @updatedAt
+  props       Prop[]
+}
+
+model Prop {
+  id          String   @id @default(cuid())
+  gameId      String
+  externalId  String   @unique // Polymarket Market ID
+  type        String   // MONEYLINE, SPREAD, TOTALS
+  title       String
+  outcomes    String[]
+  currentOdds Float[]
+  status      String   @default("ACTIVE")
+  game        Game     @relation(fields: [gameId], references: [id])
+}
+
+model MarketSnapshot {
+  id          String   @id @default(cuid())
+  league      String
+  payload     Json
+  payloadHash String
+  createdAt   DateTime @default(now())
+}

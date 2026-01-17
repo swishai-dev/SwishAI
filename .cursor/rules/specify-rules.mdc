@@ -1,0 +1,36 @@
+# SwishAi Development Guidelines
+
+Auto-generated from all feature plans. Last updated: 2026-01-17
+
+## Active Technologies
+- PostgreSQL (Analyses, Teams, Matchups) (001-basketball-prediction-ai)
+- TypeScript / Node.js 20+ (Next.js 14/15 App Router) + Next.js, OpenAI/Anthropic SDK (AI SDK), Tailwind CSS, Framer Motion, GSAP, Three.js, Prisma, Polymarket Gamma API. (002-basketball-polymarket-api)
+- PostgreSQL (via Prisma) (002-basketball-polymarket-api)
+- TypeScript / Node.js 20+ (Next.js 14/15 App Router) + Next.js, Redis (ioredis), Prisma, Tailwind CSS, Framer Motion, GSAP, Three.js. (003-basketball-data-layer)
+- PostgreSQL (Primary), Redis (Cache) (003-basketball-data-layer)
+
+- TypeScript / Next.js 14+ (App Router) + Framer Motion, GSAP, Three.js, Prisma, OpenAI/Anthropic SDK, Apollo Clien (001-basketball-prediction-ai)
+
+## Project Structure
+
+```text
+src/
+tests/
+```
+
+## Commands
+
+npm test && npm run lint
+
+## Code Style
+
+TypeScript / Next.js 14+ (App Router): Follow standard conventions
+
+## Recent Changes
+- 003-basketball-data-layer: Added TypeScript / Node.js 20+ (Next.js 14/15 App Router) + Next.js, Redis (ioredis), Prisma, Tailwind CSS, Framer Motion, GSAP, Three.js.
+- 002-basketball-polymarket-api: Added TypeScript / Node.js 20+ (Next.js 14/15 App Router) + Next.js, OpenAI/Anthropic SDK (AI SDK), Tailwind CSS, Framer Motion, GSAP, Three.js, Prisma, Polymarket Gamma API.
+- 001-basketball-prediction-ai: Added TypeScript / Next.js 14+ (App Router) + Framer Motion, GSAP, Three.js, Prisma, OpenAI/Anthropic SDK
+
+
+<!-- MANUAL ADDITIONS START -->
+<!-- MANUAL ADDITIONS END -->

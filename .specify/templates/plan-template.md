@@ -31,7 +31,19 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+**Code Quality**: ✓ Feature design follows single-responsibility principle and maintains code quality standards
+
+**Testing Standards**: ✓ Test strategy defined (unit, integration, E2E) with coverage targets; TDD approach documented
+
+**User Experience Consistency**: ✓ UX patterns align with design system; accessibility requirements (WCAG 2.1 AA) identified
+
+**Performance Requirements**: ✓ Performance targets defined (page load <3s, TTI <5s, API p95 <200ms); optimization strategy planned
+
+**Technology Stack**: ✓ Next.js App Router used; dependencies justified and minimal; no unnecessary libraries
+
+**File Structure**: ✓ Project structure follows Next.js conventions; files organized by domain/functionality
+
+**Responsive Design**: ✓ Mobile and desktop support planned; responsive breakpoints defined; cross-device testing strategy
 
 ## Project Structure
 
@@ -68,20 +80,28 @@ tests/
 ├── integration/
 └── unit/
 
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
+# [REMOVE IF UNUSED] Option 2: Next.js fullstack application (DEFAULT for web apps)
+app/
+├── api/              # API routes
+├── [routes]/         # App Router pages
+└── layout.tsx        # Root layout
 
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   └── services/
-└── tests/
+components/
+├── [feature]/        # Feature-specific components
+└── ui/               # Shared UI components
+
+lib/
+├── utils/            # Utility functions
+└── [domain]/         # Domain-specific logic
+
+types/                # TypeScript type definitions
+hooks/                # Custom React hooks
+styles/               # Global styles
+
+tests/
+├── unit/
+├── integration/
+└── e2e/
 
 # [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
 api/

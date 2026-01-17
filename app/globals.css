@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@theme {
+  --color-neon-orange: #ff6600;
+  --color-neon-blue: #00ccff;
+  --color-neon-green: #33ff00;
+}
+
+:root {
+  --background: #000000;
+  --foreground: #ffffff;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/10 backdrop-blur-md border border-white/20 rounded-xl;
+  }
+  
+  .neon-border-orange {
+    @apply border-[--color-neon-orange] shadow-[0_0_10px_rgba(255,102,0,0.5)];
+  }
+  
+  .neon-text-orange {
+    @apply text-[--color-neon-orange] shadow-[0_0_5px_rgba(255,102,0,0.5)];
+  }
+}
