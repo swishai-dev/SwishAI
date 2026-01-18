@@ -6,7 +6,7 @@ interface OddsButtonProps {
   label: string;
   price: string | number;
   active?: boolean;
-  color?: "green" | "blue" | "orange" | "red" | "zinc";
+  color?: "green" | "blue" | "orange" | "red" | "zinc" | "purple";
 }
 
 const OddsButton = ({ label, price, active, color = "zinc" }: OddsButtonProps) => {
@@ -16,6 +16,7 @@ const OddsButton = ({ label, price, active, color = "zinc" }: OddsButtonProps) =
     orange: "bg-orange-600/20 text-orange-400 border-orange-600/30 hover:bg-orange-600/40",
     red: "bg-red-600/20 text-red-400 border-red-600/30 hover:bg-red-600/40",
     zinc: "bg-zinc-800/50 text-zinc-300 border-zinc-700 hover:bg-zinc-700/50",
+    purple: "bg-purple-600/20 text-purple-400 border-purple-600/30 hover:bg-purple-600/40",
   };
 
   const activeClasses = active ? "ring-2 ring-offset-2 ring-offset-black ring-current" : "";
@@ -36,8 +37,8 @@ interface BettingGridProps {
   moneyline?: { home: number; away: number };
   spread?: { home: string; homeOdds: number; away: string; awayOdds: number };
   total?: { over: string; overOdds: number; under: string; underOdds: number };
-  homeColor?: "green" | "blue" | "orange" | "red" | "zinc";
-  awayColor?: "green" | "blue" | "orange" | "red" | "zinc";
+  homeColor?: "green" | "blue" | "orange" | "red" | "zinc" | "purple";
+  awayColor?: "green" | "blue" | "orange" | "red" | "zinc" | "purple";
   homeLabel: string;
   awayLabel: string;
 }

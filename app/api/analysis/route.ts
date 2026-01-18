@@ -87,7 +87,8 @@ export async function POST(request: NextRequest) {
         }
       });
     } catch (e) {
-      console.warn("Persistence skipped (DB connection or constraints):", e.message);
+      const errorMessage = e instanceof Error ? e.message : String(e);
+      console.warn("Persistence skipped (DB connection or constraints):", errorMessage);
     }
     
     return NextResponse.json({
