@@ -28,4 +28,16 @@ body {
   .neon-text-orange {
     @apply text-[--color-neon-orange] shadow-[0_0_5px_rgba(255,102,0,0.5)];
   }
+
+  /* Loading animation styles */
+  .loader-img {
+    transition: none;
+  }
+  
+  .loader-img.animate-out {
+    top: unset !important;
+    left: unset !important;
+    bottom: 1.5rem !important;
+    right: 1.5rem !important;
+  }
 }
