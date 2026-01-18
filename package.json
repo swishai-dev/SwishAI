@@ -16,6 +16,7 @@
     "@react-three/fiber": "^9.5.0",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/three": "^0.182.0",
+    "@vercel/kv": "^1.0.1",
     "axios": "^1.13.2",
     "framer-motion": "^12.26.2",
     "gsap": "^3.14.2",

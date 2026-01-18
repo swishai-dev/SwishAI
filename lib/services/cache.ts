@@ -1,17 +1,19 @@
 import { redis } from "../redis";
-import { logger } from "../logger";
+import { logger } from "./logger";
 
 /**
- * Check if Redis is available and connected
+ * Check if Redis/KV is available
  */
 async function isRedisAvailable(): Promise<boolean> {
   try {
-    const status = redis.status;
-    if (status === "ready") return true;
-    if (status === "connect" || status === "connecting") {
-      // Try to ping Redis
-      await redis.ping();
-      return true;
+    // For Vercel KV, check if configured
+    if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
+      try {
+        await redis.ping();
+        return true;
+      } catch {
+        return false;
+      }
     }
     return false;
   } catch (error) {
@@ -25,7 +27,7 @@ export class CacheService {
   private static readonly CHECK_INTERVAL = 30000; // Check every 30 seconds
 
   /**
-   * Check Redis availability with caching to avoid excessive checks
+   * Check Redis/KV availability with caching to avoid excessive checks
    */
   private static async checkRedisAvailability(): Promise<boolean> {
     const now = Date.now();
@@ -38,12 +40,12 @@ export class CacheService {
 
   /**
    * Gets a value from cache with an optional simulation delay.
-   * Returns null if Redis is not available (graceful degradation).
+   * Returns null if Redis/KV is not available (graceful degradation).
    */
   static async get<T>(key: string, simulateDelay: boolean = false): Promise<T | null> {
     const available = await this.checkRedisAvailability();
     if (!available) {
-      // Redis not available - silent fail (graceful degradation)
+      // Redis/KV not available - silent fail (graceful degradation)
       return null;
     }
 
@@ -61,7 +63,7 @@ export class CacheService {
       // Only log actual errors, not connection issues (which are handled above)
       const errorMessage = error?.message || String(error);
       if (!errorMessage.includes("Connection") && !errorMessage.includes("ECONNREFUSED")) {
-        logger.warn(`Redis Get Error for key ${key.substring(0, 50)}...:`, {
+        logger.warn(`KV Get Error for key ${key.substring(0, 50)}...:`, {
           error: errorMessage.substring(0, 100),
         });
       }
@@ -73,12 +75,12 @@ export class CacheService {
 
   /**
    * Sets a value in cache with TTL.
-   * Silently fails if Redis is not available (graceful degradation).
+   * Silently fails if Redis/KV is not available (graceful degradation).
    */
   static async set(key: string, value: any, ttlSeconds: number = 300): Promise<void> {
     const available = await this.checkRedisAvailability();
     if (!available) {
-      // Redis not available - silent fail (graceful degradation)
+      // Redis/KV not available - silent fail (graceful degradation)
       return;
     }
 
@@ -88,7 +90,7 @@ export class CacheService {
       // Only log actual errors, not connection issues
       const errorMessage = error?.message || String(error);
       if (!errorMessage.includes("Connection") && !errorMessage.includes("ECONNREFUSED")) {
-        logger.warn(`Redis Set Error for key ${key.substring(0, 50)}...:`, {
+        logger.warn(`KV Set Error for key ${key.substring(0, 50)}...:`, {
           error: errorMessage.substring(0, 100),
         });
       }
@@ -99,12 +101,12 @@ export class CacheService {
 
   /**
    * Deletes a key from cache.
-   * Silently fails if Redis is not available (graceful degradation).
+   * Silently fails if Redis/KV is not available (graceful degradation).
    */
   static async del(key: string): Promise<void> {
     const available = await this.checkRedisAvailability();
     if (!available) {
-      // Redis not available - silent fail (graceful degradation)
+      // Redis/KV not available - silent fail (graceful degradation)
       return;
     }
 
@@ -114,7 +116,7 @@ export class CacheService {
       // Only log actual errors, not connection issues
       const errorMessage = error?.message || String(error);
       if (!errorMessage.includes("Connection") && !errorMessage.includes("ECONNREFUSED")) {
-        logger.warn(`Redis Del Error for key ${key.substring(0, 50)}...:`, {
+        logger.warn(`KV Del Error for key ${key.substring(0, 50)}...:`, {
           error: errorMessage.substring(0, 100),
         });
       }

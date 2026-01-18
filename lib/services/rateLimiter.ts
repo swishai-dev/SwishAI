@@ -12,45 +12,19 @@ export interface RateLimitResult {
 }
 
 /**
- * Check if Redis is available and connected
- * Waits briefly for connection if Redis is connecting
+ * Check if Redis/KV is available
  */
 async function isRedisAvailable(): Promise<boolean> {
   try {
-    const status = redis.status;
-    
-    // If already ready, return true immediately
-    if (status === "ready") return true;
-    
-    // If connecting, wait a bit and try to ping
-    if (status === "connect" || status === "connecting") {
+    // For Vercel KV, check if configured
+    if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
       try {
-        // Wait up to 500ms for connection
-        const pingPromise = redis.ping();
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error("Timeout")), 500)
-        );
-        await Promise.race([pingPromise, timeoutPromise]);
+        await redis.ping();
         return true;
-      } catch (error) {
-        // Connection still in progress or failed
+      } catch {
         return false;
       }
     }
-    
-    // If not connected, try to connect (non-blocking)
-    if (status === "end" || status === "close") {
-      try {
-        await redis.connect();
-        // Give it a moment to establish connection
-        await new Promise(resolve => setTimeout(resolve, 100));
-        if (redis.status === "ready") return true;
-      } catch (error) {
-        // Connection failed
-        return false;
-      }
-    }
-    
     return false;
   } catch (error) {
     return false;
@@ -64,7 +38,7 @@ export class RateLimiter {
   /**
    * Rate limit check for OpenAI API calls
    * Uses limits from configuration
-   * Falls back gracefully if Redis is unavailable
+   * Falls back gracefully if Redis/KV is unavailable
    */
   static async checkOpenAIRateLimit(): Promise<RateLimitResult> {
     const limits = getOpenAILimits();
@@ -83,7 +57,7 @@ export class RateLimiter {
     if (this.redisAvailabilityCache && cacheAge < this.CACHE_TTL) {
       redisAvailable = this.redisAvailabilityCache.available;
     } else {
-      // Check Redis availability
+      // Check Redis/KV availability
       redisAvailable = await isRedisAvailable();
       // Cache the result
       this.redisAvailabilityCache = {
@@ -95,12 +69,12 @@ export class RateLimiter {
     if (!redisAvailable) {
       // Only log once per cache period to avoid spam
       if (!this.redisAvailabilityCache || cacheAge >= this.CACHE_TTL) {
-        logger.debug("Redis not available, skipping rate limit check", {
+        logger.debug("Redis/KV not available, skipping rate limit check", {
           provider,
           note: "Rate limiting disabled - API calls will proceed",
         });
       }
-      // If Redis is not available, allow requests but warn
+      // If Redis/KV is not available, allow requests but warn
       // The API itself will enforce limits
       return {
         allowed: true,
@@ -113,10 +87,11 @@ export class RateLimiter {
 
     try {
       // Check minute limit (OpenAI only has RPM limits, no daily limits)
-      const minuteCount = await redis.get(minuteKey);
+      const minuteCountStr = await redis.get(minuteKey);
+      const minuteCount = minuteCountStr ? parseInt(minuteCountStr) : 0;
       const minuteLimit = limits.rpm;
       
-      if (minuteCount && parseInt(minuteCount) >= minuteLimit) {
+      if (minuteCount >= minuteLimit) {
         const resetAt = (minuteWindow + 1) * 60;
         const retryAfter = resetAt - now;
         
@@ -138,16 +113,14 @@ export class RateLimiter {
       }
 
       // Increment counter
-      const pipeline = redis.pipeline();
-      pipeline.incr(minuteKey);
-      pipeline.expire(minuteKey, 120); // Expire after 2 minutes
-      await pipeline.exec();
+      const newCount = await redis.incr(minuteKey);
+      await redis.expire(minuteKey, 120); // Expire after 2 minutes
 
-      const remainingMinute = minuteLimit - (parseInt(minuteCount || "0") + 1);
+      const remainingMinute = minuteLimit - newCount;
 
       return {
         allowed: true,
-        remaining: remainingMinute,
+        remaining: Math.max(0, remainingMinute),
         resetAt: (minuteWindow + 1) * 60,
         tier: provider,
         redisAvailable: true,
@@ -157,7 +130,7 @@ export class RateLimiter {
         error: error?.message || error,
         provider,
       });
-      // If Redis fails during operation, allow the request but log the error
+      // If Redis/KV fails during operation, allow the request but log the error
       // The API itself will enforce limits
       return {
         allowed: true,
