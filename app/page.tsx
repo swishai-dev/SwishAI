@@ -3,27 +3,56 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { gsap } from "gsap";
-import { Flip } from "gsap/Flip";
+import { Flip } from "gsap/dist/Flip";
 
 // Register Flip plugin
 if (typeof window !== "undefined") {
   gsap.registerPlugin(Flip);
 }
 
-// NBA themed images - high quality basketball images
+// NBA team logos - all 30 teams
 const nbaImages = [
-  "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&q=80",
-  "https://images.unsplash.com/photo-1519861531473-9200262188bf?w=800&q=80",
-  "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&q=80",
-  "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&q=80",
-  "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=800&q=80",
-  "https://images.unsplash.com/photo-1608245449230-4ac19066d2d0?w=800&q=80",
-  "https://images.unsplash.com/photo-1504450758481-7338bbe75c8e?w=800&q=80",
-  "https://images.unsplash.com/photo-1518063319789-7217e6706b04?w=800&q=80",
-  "https://images.unsplash.com/photo-1559692048-79a3f837883d?w=800&q=80",
-  "https://images.unsplash.com/photo-1485395578879-d2d0d4a82f88?w=800&q=80",
-  "https://images.unsplash.com/photo-1577471488278-16eec37ffcc2?w=800&q=80",
-  "https://images.unsplash.com/photo-1504450874802-0ba2bcd9b5ae?w=800&q=80",
+  // Eastern Conference - Atlantic
+  "https://cdn.nba.com/logos/nba/1610612738/primary/L/logo.svg", // Boston Celtics
+  "https://cdn.nba.com/logos/nba/1610612751/primary/L/logo.svg", // Brooklyn Nets
+  "https://cdn.nba.com/logos/nba/1610612752/primary/L/logo.svg", // New York Knicks
+  "https://cdn.nba.com/logos/nba/1610612755/primary/L/logo.svg", // Philadelphia 76ers
+  "https://cdn.nba.com/logos/nba/1610612761/primary/L/logo.svg", // Toronto Raptors
+  
+  // Eastern Conference - Central
+  "https://cdn.nba.com/logos/nba/1610612741/primary/L/logo.svg", // Chicago Bulls
+  "https://cdn.nba.com/logos/nba/1610612739/primary/L/logo.svg", // Cleveland Cavaliers
+  "https://cdn.nba.com/logos/nba/1610612765/primary/L/logo.svg", // Detroit Pistons
+  "https://cdn.nba.com/logos/nba/1610612754/primary/L/logo.svg", // Indiana Pacers
+  "https://cdn.nba.com/logos/nba/1610612749/primary/L/logo.svg", // Milwaukee Bucks
+  
+  // Eastern Conference - Southeast
+  "https://cdn.nba.com/logos/nba/1610612737/primary/L/logo.svg", // Atlanta Hawks
+  "https://cdn.nba.com/logos/nba/1610612766/primary/L/logo.svg", // Charlotte Hornets
+  "https://cdn.nba.com/logos/nba/1610612748/primary/L/logo.svg", // Miami Heat
+  "https://cdn.nba.com/logos/nba/1610612753/primary/L/logo.svg", // Orlando Magic
+  "https://cdn.nba.com/logos/nba/1610612764/primary/L/logo.svg", // Washington Wizards
+  
+  // Western Conference - Northwest
+  "https://cdn.nba.com/logos/nba/1610612743/primary/L/logo.svg", // Denver Nuggets
+  "https://cdn.nba.com/logos/nba/1610612750/primary/L/logo.svg", // Minnesota Timberwolves
+  "https://cdn.nba.com/logos/nba/1610612760/primary/L/logo.svg", // Oklahoma City Thunder
+  "https://cdn.nba.com/logos/nba/1610612757/primary/L/logo.svg", // Portland Trail Blazers
+  "https://cdn.nba.com/logos/nba/1610612762/primary/L/logo.svg", // Utah Jazz
+  
+  // Western Conference - Pacific
+  "https://cdn.nba.com/logos/nba/1610612744/primary/L/logo.svg", // Golden State Warriors
+  "https://cdn.nba.com/logos/nba/1610612746/primary/L/logo.svg", // LA Clippers
+  "https://cdn.nba.com/logos/nba/1610612747/primary/L/logo.svg", // Los Angeles Lakers
+  "https://cdn.nba.com/logos/nba/1610612756/primary/L/logo.svg", // Phoenix Suns
+  "https://cdn.nba.com/logos/nba/1610612758/primary/L/logo.svg", // Sacramento Kings
+  
+  // Western Conference - Southwest
+  "https://cdn.nba.com/logos/nba/1610612742/primary/L/logo.svg", // Dallas Mavericks
+  "https://cdn.nba.com/logos/nba/1610612745/primary/L/logo.svg", // Houston Rockets
+  "https://cdn.nba.com/logos/nba/1610612763/primary/L/logo.svg", // Memphis Grizzlies
+  "https://cdn.nba.com/logos/nba/1610612740/primary/L/logo.svg", // New Orleans Pelicans
+  "https://cdn.nba.com/logos/nba/1610612759/primary/L/logo.svg", // San Antonio Spurs
 ];
 
 export default function Home() {
@@ -36,6 +65,17 @@ export default function Home() {
   const counterRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const animateImagesFnRef = useRef<(() => void) | null>(null);
+
+  // Check if we should skip loading (from navigation, not initial load)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const skipLoading = sessionStorage.getItem("skipLoading");
+      if (skipLoading === "true") {
+        sessionStorage.removeItem("skipLoading");
+        setIsLoading(false);
+      }
+    }
+  }, []);
 
   // Counter animation - counts down from 24 to 0 (basketball shot clock style)
   // Shows centiseconds when below 5 seconds
@@ -211,55 +251,17 @@ export default function Home() {
     if (isLoading || !contentRef.current) return;
 
     const ctx = gsap.context(() => {
-      gsap.set(".reveal-item", { y: 100, opacity: 0 });
-      gsap.set(".feature-card", { y: 60, opacity: 0, scale: 0.95 });
-      gsap.set(".bottom-section", { y: 40, opacity: 0 });
-
-      const tl = gsap.timeline();
-
-      // Title and subtitle
-      tl.to(".reveal-item", {
-        y: 0,
-        opacity: 1,
-        duration: 1,
-        stagger: 0.15,
-        ease: "power3.out",
+      gsap.set([".reveal-item", ".feature-card", ".bottom-section"], {
+        y: 20,
+        opacity: 0,
       });
 
-      // Feature cards
-      tl.to(
-        ".feature-card",
-        {
-          y: 0,
-          opacity: 1,
-          scale: 1,
-          duration: 0.8,
-          stagger: 0.1,
-          ease: "back.out(1.4)",
-        },
-        "-=0.5"
-      );
-
-      // Bottom section
-      tl.to(
-        ".bottom-section",
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.8,
-          ease: "power2.out",
-        },
-        "-=0.4"
-      );
-
-      // Floating animation for title
-      gsap.to(".main-title", {
-        y: -10,
-        duration: 3,
-        ease: "sine.inOut",
-        repeat: -1,
-        yoyo: true,
-        delay: 1,
+      gsap.to([".reveal-item", ".feature-card", ".bottom-section"], {
+        y: 0,
+        opacity: 1,
+        duration: 0.6,
+        stagger: 0.05,
+        ease: "power2.out",
       });
     }, contentRef);
 
@@ -294,13 +296,16 @@ export default function Home() {
                 top: "1.5rem",
                 left: "1.5rem",
                 zIndex: 10 + index,
+                backgroundColor: "#000000",
               }}
             >
               <img
                 src={src}
-                alt={`NBA ${index + 1}`}
-                className="w-full h-full object-cover"
-                style={{ filter: "brightness(0.8) contrast(1.1)" }}
+                alt={`NBA Team ${index + 1}`}
+                className="w-full h-full object-contain p-4"
+                style={{ 
+                  filter: "brightness(1.1) contrast(1.2)",
+                }}
               />
             </div>
           ))}
@@ -364,24 +369,9 @@ export default function Home() {
         className="relative w-full h-full flex flex-col overflow-hidden"
         style={{ visibility: isLoading ? "hidden" : "visible" }}
       >
-        {/* Background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-black via-zinc-900 to-black" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-orange-500/10 via-transparent to-transparent" />
+        {/* Background - solid black */}
+        <div className="absolute inset-0 bg-black" />
 
-        {/* Navigation */}
-        <nav className="relative z-10 w-full px-6 md:px-12 py-6 flex justify-between items-center border-b border-white/10">
-          <div className="reveal-item text-2xl font-black italic text-white uppercase tracking-tight">
-            Swish<span className="text-neon-orange">AI</span>
-          </div>
-          <div className="reveal-item flex items-center gap-8">
-            <a href="https://polymarket.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors text-sm uppercase tracking-wider">
-              Polymarket
-            </a>
-            <Link href="/explorer" className="text-gray-400 hover:text-white transition-colors text-sm uppercase tracking-wider">
-              Explorer
-            </Link>
-          </div>
-        </nav>
 
         {/* Hero Section */}
         <div
@@ -393,7 +383,6 @@ export default function Home() {
             <h1
               className="main-title reveal-item text-6xl md:text-8xl lg:text-[10rem] font-black italic uppercase tracking-tighter text-white mb-4"
               style={{
-                textShadow: "0 0 80px rgba(255, 102, 0, 0.6)",
                 letterSpacing: "-0.06em",
               }}
             >
@@ -411,19 +400,11 @@ export default function Home() {
           <div className="reveal-item flex flex-col sm:flex-row gap-4 mb-12">
             <Link
               href="/explorer"
-              className="group relative px-12 py-5 bg-neon-orange text-black font-black text-lg rounded-full hover:scale-105 transition-all duration-300 shadow-[0_0_50px_rgba(255,102,0,0.5)] uppercase tracking-wider overflow-hidden"
+              className="group relative px-12 py-5 bg-neon-orange text-black font-black text-lg rounded-full hover:scale-105 transition-all duration-300 uppercase tracking-wider overflow-hidden"
             >
               <span className="relative z-10">Explore Markets</span>
               <div className="absolute inset-0 bg-white/30 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
             </Link>
-            <a
-              href="https://polymarket.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-12 py-5 bg-white/5 backdrop-blur border border-white/20 text-white font-bold text-lg rounded-full hover:bg-white/10 hover:border-white/40 transition-all duration-300 uppercase tracking-wider hover:scale-105"
-            >
-              Polymarket Live
-            </a>
           </div>
 
           {/* Features Grid */}
@@ -432,7 +413,7 @@ export default function Home() {
               <div className="text-4xl font-black text-neon-orange/80 mb-3">01</div>
               <h3 className="text-lg font-bold text-white uppercase tracking-tight mb-2">AI Analysis</h3>
               <p className="text-gray-400 text-sm leading-relaxed">
-                Deep learning models analyze NBA, EuroLeague & NCAA data in real-time
+                Deep learning models analyze NBA data in real-time
               </p>
             </div>
 
@@ -476,9 +457,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Decorative elements */}
-        <div className="absolute top-20 right-20 w-96 h-96 bg-orange-500/10 blur-[120px] rounded-full pointer-events-none" />
-        <div className="absolute bottom-20 left-20 w-96 h-96 bg-blue-500/10 blur-[120px] rounded-full pointer-events-none" />
       </div>
 
     </main>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   TrendingUp, 
@@ -223,15 +224,22 @@ function AnalysisContent() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between py-4">
             <button
-              onClick={() => window.history.back()}
+              onClick={() => {
+                sessionStorage.setItem("skipLoading", "true");
+                window.history.back();
+              }}
               className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Back</span>
             </button>
-            <h1 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter">
+            <Link 
+              href="/"
+              onClick={() => sessionStorage.setItem("skipLoading", "true")}
+              className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter hover:opacity-80 transition-opacity cursor-pointer"
+            >
               Swish<span className="text-neon-orange">AI</span>
-            </h1>
+            </Link>
             <div className="w-16"></div> {/* Spacer for centering */}
           </div>
         </div>
