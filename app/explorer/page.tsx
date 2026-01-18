@@ -13,7 +13,8 @@ import {
   Loader2,
   Flame,
   Trophy,
-  Calendar
+  Calendar,
+  ArrowLeft
 } from "lucide-react";
 import type { NBAGame, NBAProp } from "@/lib/services/nba";
 
@@ -25,6 +26,7 @@ export default function ExplorerPage() {
   const [games, setGames] = useState<NBAGame[]>([]);
   const [props, setProps] = useState<NBAProp[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
   
   // Pagination
   const [page, setPage] = useState(1);
@@ -50,6 +52,10 @@ export default function ExplorerPage() {
     }, 300);
     return () => clearTimeout(debounce);
   }, [fetchData]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Reset pagination on search or tab change
   useEffect(() => {
@@ -97,15 +103,25 @@ export default function ExplorerPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#0d0d12] to-[#0a0a0a] text-white">
       {/* Header */}
-      <header className="border-b border-white/5 bg-black/40 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="flex flex-col items-center justify-center py-4">
-            <h1 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter">
-              Swish<span className="text-neon-orange">AI</span>
-            </h1>
+      {mounted && (
+        <header className="border-b border-white/5 bg-black/40 backdrop-blur-xl sticky top-0 z-50">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6">
+            <div className="flex items-center justify-between py-4">
+              <button
+                onClick={() => window.history.back()}
+                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back</span>
+              </button>
+              <h1 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter">
+                Swish<span className="text-neon-orange">AI</span>
+              </h1>
+              <div className="w-16"></div>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
+      )}
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
         {/* NBA Markets Title */}
@@ -118,16 +134,51 @@ export default function ExplorerPage() {
 
         {/* Search Bar */}
         <div className="mb-8">
-          <div className="relative max-w-xl mx-auto">
-            <div className="absolute inset-0 bg-gradient-to-r from-orange-500/20 via-red-500/20 to-pink-500/20 rounded-2xl blur-xl" />
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <div className="relative max-w-xl mx-auto group">
+            <div
+              className={`absolute inset-0 rounded-2xl blur-xl ${
+                activeTab === "props"
+                  ? "bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20"
+                  : "bg-gradient-to-r from-orange-500/20 via-red-500/20 to-pink-500/20"
+              }`}
+            />
+            <div className="relative overflow-hidden rounded-2xl">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 z-30">
+                <Search
+                  className={`w-5 h-5 text-gray-400 transition-colors duration-200 ${
+                    activeTab === "props"
+                      ? "group-hover:text-purple-400"
+                      : "group-hover:text-orange-400"
+                  }`}
+                />
+              </div>
+              {/* Animated Tooltip Text */}
+              {!search && (
+                <div className="absolute inset-0 pl-12 pr-4 flex items-center pointer-events-none z-10">
+                  <div className="w-full overflow-hidden">
+                    <span
+                      className={`inline-block text-sm text-gray-400 whitespace-nowrap transition-all duration-500 ease-out opacity-0 -translate-x-full group-hover:opacity-100 group-hover:translate-x-0 ${
+                        activeTab === "props"
+                          ? "group-hover:text-purple-400"
+                          : "group-hover:text-orange-400"
+                      }`}
+                    >
+                      Search teams, markets...
+                    </span>
+                  </div>
+                </div>
+              )}
               <input
                 type="text"
-                placeholder="Search teams, markets..."
+                placeholder=""
+                aria-label="Search teams, markets"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 bg-black/60 border border-white/10 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20 transition-all backdrop-blur-sm"
+                className={`w-full pl-12 pr-4 py-4 bg-black/60 border border-white/10 rounded-2xl text-white placeholder-gray-500 focus:outline-none transition-all backdrop-blur-sm ${
+                  activeTab === "props"
+                    ? "focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20"
+                    : "focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20"
+                }`}
               />
               {search && (
                 <button onClick={() => setSearch("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">

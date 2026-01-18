@@ -412,14 +412,14 @@ function AnalysisContent() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.5 }}
-                      className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 mb-8"
+                      className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 md:gap-8 mb-8 w-full max-w-6xl"
                     >
                       {/* Away Team */}
                       <motion.span
                         initial={{ opacity: 0, x: -30 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.6, delay: 0.1 }}
-                        className="relative font-bold text-white text-5xl md:text-7xl lg:text-8xl tracking-tight drop-shadow-lg px-8 py-4"
+                        className="relative font-bold text-white text-5xl md:text-7xl lg:text-8xl tracking-tight drop-shadow-lg px-8 py-4 text-right justify-self-end"
                       >
                         {/* Team Logo Background */}
                         {getNBATeamLogo(data?.awayTeam) && (
@@ -439,10 +439,11 @@ function AnalysisContent() {
                         {data?.awayTeam}
                       </motion.span>
                       <motion.span
-                        initial={{ scale: 0, rotate: -180 }}
-                        animate={{ scale: 1, rotate: 0 }}
+                        initial={{ scale: 0, rotate: -180, opacity: 1 }}
+                        animate={{ scale: 1, rotate: 0, opacity: 1 }}
                         transition={{ delay: 0.4, type: "spring", stiffness: 200, damping: 10 }}
-                        className="text-neon-orange font-black text-4xl md:text-5xl lg:text-6xl px-6 py-2 bg-gradient-to-r from-orange-500/10 to-red-500/10 rounded-xl border border-orange-500/20 shadow-lg shadow-orange-500/20"
+                        className="text-neon-orange font-black text-4xl md:text-5xl lg:text-6xl justify-self-center opacity-100 relative z-20"
+                        style={{ opacity: 1 }}
                       >
                         VS
                       </motion.span>
@@ -451,7 +452,7 @@ function AnalysisContent() {
                         initial={{ opacity: 0, x: 30 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.6, delay: 0.2 }}
-                        className="relative font-bold text-white text-5xl md:text-7xl lg:text-8xl tracking-tight drop-shadow-lg px-8 py-4"
+                        className="relative font-bold text-white text-5xl md:text-7xl lg:text-8xl tracking-tight drop-shadow-lg px-8 py-4 text-left justify-self-start"
                       >
                         {/* Team Logo Background */}
                         {getNBATeamLogo(data?.homeTeam) && (
@@ -984,8 +985,15 @@ function AnalysisContent() {
                       
                       {/* Risk Tags Grid */}
                       <div className="grid grid-cols-2 gap-3 mb-4">
-                        {structuredData.charts.riskDistribution.map((risk, idx) => {
-                          const riskLevel = risk.weight >= 30 ? 'high' : risk.weight >= 15 ? 'medium' : 'low';
+                        {(() => {
+                          const weights = structuredData.charts.riskDistribution.map(r => r.weight || 0);
+                          const uniqueWeights = Array.from(new Set(weights)).sort((a, b) => b - a);
+                          const topWeight = uniqueWeights[0] ?? 0;
+                          const secondWeight = uniqueWeights[1] ?? 0;
+
+                          return structuredData.charts.riskDistribution.map((risk, idx) => {
+                            const isTop = (risk.weight || 0) === topWeight && topWeight > 0;
+                            const isSecond = (risk.weight || 0) === secondWeight && secondWeight > 0 && !isTop;
                           return (
                             <motion.div
                               key={idx}
@@ -993,16 +1001,16 @@ function AnalysisContent() {
                               animate={{ opacity: 1, scale: 1 }}
                               transition={{ delay: 1 + idx * 0.1 }}
                               className={`p-3 rounded-xl border ${
-                                riskLevel === 'high' ? 'bg-red-500/10 border-red-500/30' :
-                                riskLevel === 'medium' ? 'bg-yellow-500/10 border-yellow-500/30' :
-                                'bg-gray-500/10 border-gray-500/30'
+                                isTop ? 'bg-red-500/10 border-red-500/30' :
+                                isSecond ? 'bg-yellow-500/10 border-yellow-500/30' :
+                                'bg-black/20 border-white/10'
                               }`}
                             >
                               <div className="flex items-center justify-between mb-2">
                                 <span className="text-xs font-semibold text-white">{risk.factor}</span>
                                 <span className={`text-xs font-black ${
-                                  riskLevel === 'high' ? 'text-red-400' :
-                                  riskLevel === 'medium' ? 'text-yellow-400' :
+                                  isTop ? 'text-red-400' :
+                                  isSecond ? 'text-yellow-400' :
                                   'text-gray-400'
                                 }`}>
                                   {risk.weight}%
@@ -1014,26 +1022,18 @@ function AnalysisContent() {
                                   animate={{ width: `${risk.weight || 0}%` }}
                                   transition={{ duration: 0.8, delay: 1.2 + idx * 0.1 }}
                                   className={`h-full ${
-                                    riskLevel === 'high' ? 'bg-gradient-to-r from-red-500 to-red-600' :
-                                    riskLevel === 'medium' ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
-                                    'bg-gradient-to-r from-gray-500 to-gray-600'
+                                    isTop ? 'bg-gradient-to-r from-red-500 to-red-600' :
+                                    isSecond ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
+                                    'bg-gradient-to-r from-gray-600 to-gray-700'
                                   }`}
                                 />
                               </div>
                             </motion.div>
                           );
-                        })}
+                        });
+                        })()}
                       </div>
 
-                      {/* Risk Summary */}
-                      <div className="pt-4 border-t border-white/5">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-gray-400">Total Risk Weight</span>
-                          <span className="text-white font-bold">
-                            {structuredData.charts.riskDistribution.reduce((sum, r) => sum + (r.weight || 0), 0).toFixed(0)}%
-                          </span>
-                        </div>
-                      </div>
                       </motion.div>
                     )}
                   </div>

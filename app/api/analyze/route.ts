@@ -363,14 +363,14 @@ After the markdown, include a VALID JSON block with this EXACT schema:
       "modelProbability": number (0-100),
       "marketImpliedProbability": number (0-100)
     },
-    "riskDistribution": [
-      { "factor": "Injury Uncertainty", "weight": number (0-100) },
-      { "factor": "Pace Variance", "weight": number (0-100) },
-      { "factor": "Blowout Risk", "weight": number (0-100) },
-      { "factor": "Three-Point Variance", "weight": number (0-100) },
-      { "factor": "Late-Game Execution", "weight": number (0-100) },
-      { "factor": "Referee Impact", "weight": number (0-100) }
-    ]
+  "riskDistribution": [
+    { "factor": "Key Injury Status", "weight": number (0-100) },
+    { "factor": "Rotation/Minutes Volatility", "weight": number (0-100) },
+    { "factor": "Pace Volatility", "weight": number (0-100) },
+    { "factor": "Shooting Variance", "weight": number (0-100) },
+    { "factor": "Foul Trouble/Referee Impact", "weight": number (0-100) },
+    { "factor": "Late-Game Execution Risk", "weight": number (0-100) }
+  ]
   }
 }
 \`\`\`
@@ -383,7 +383,7 @@ CRITICAL REQUIREMENTS:
 - All numbers in JSON must be within specified ranges (use integers for confidence, edgeScore, impact, weight; use numbers for probabilities).
 - "recommendedSide" MUST be one of: "home", "away", "over", "under", or "none"
 - "recommendationReason" MUST provide a clear, specific explanation of why this recommendation is made
-- "riskDistribution" MUST include all 6 factors listed above with weights that sum to approximately 100
+- "riskDistribution" MUST include all 6 factors listed above with weights as independent 0-100 scores (do NOT force them to sum to 100)
 - If "recommendedSide" is "none", explain why no clear recommendation exists
 - IMPORTANT: The JSON block MUST be wrapped in triple backticks with "json" language tag: \`\`\`json ... \`\`\`
 - IMPORTANT: Ensure all JSON strings are properly escaped and all brackets/braces are balanced
@@ -508,12 +508,12 @@ After the markdown, include a VALID JSON block with this EXACT schema:
       "marketImpliedProbability": number (0-100)
     },
     "riskDistribution": [
-      { "factor": "Statistical Variance", "weight": number (0-100) },
-      { "factor": "Information Asymmetry", "weight": number (0-100) },
-      { "factor": "Timing Risk", "weight": number (0-100) },
-      { "factor": "Market Volatility", "weight": number (0-100) },
-      { "factor": "Injury Impact", "weight": number (0-100) },
-      { "factor": "Game Script Risk", "weight": number (0-100) }
+      { "factor": "Key Injury/Availability", "weight": number (0-100) },
+      { "factor": "Role/Usage Volatility", "weight": number (0-100) },
+      { "factor": "Minutes/Rotation Risk", "weight": number (0-100) },
+      { "factor": "Opponent Matchup Risk", "weight": number (0-100) },
+      { "factor": "Blowout/Game Script Risk", "weight": number (0-100) },
+      { "factor": "Market Information Risk", "weight": number (0-100) }
     ]
   }
 }
@@ -528,7 +528,7 @@ CRITICAL REQUIREMENTS:
 - "recommendedOption" MUST be the EXACT option name from the market list above (case-sensitive), or "none"
 - "recommendationReason" MUST provide a clear, specific explanation referencing the strongest supporting factor
 - "keyFactors" MUST include all 5 factors listed above with impact scores
-- "riskDistribution" MUST include all 6 factors listed above with weights that sum to approximately 100
+- "riskDistribution" MUST include all 6 factors listed above with weights as independent 0-100 scores (do NOT force them to sum to 100)
 - If "recommendedOption" is "none", "recommendationReason" must explain why no clear recommendation exists
 - "modelProbability" should reflect your statistical assessment, "marketImpliedProbability" should reflect current market pricing
 - IMPORTANT: The JSON block MUST be wrapped in triple backticks with "json" language tag: \`\`\`json ... \`\`\`
@@ -625,6 +625,29 @@ CRITICAL REQUIREMENTS:
       return null;
     }
 
+    const adjustRiskDistribution = (data: any) => {
+      const risks = data?.charts?.riskDistribution;
+      if (!Array.isArray(risks) || risks.length === 0) return;
+
+      const weights = risks.map((r: any) => Number(r?.weight) || 0);
+      const sum = weights.reduce((acc: number, w: number) => acc + w, 0);
+      const max = Math.max(...weights);
+
+      // If model normalized to ~100 total, rescale to independent 0-100 scores
+      if (sum >= 95 && sum <= 105 && max > 0) {
+        data.charts.riskDistribution = risks.map((r: any, idx: number) => ({
+          ...r,
+          weight: Math.max(0, Math.min(100, Math.round((weights[idx] / max) * 100))),
+        }));
+      }
+
+      // Soften overly high risk values
+      data.charts.riskDistribution = data.charts.riskDistribution.map((r: any) => ({
+        ...r,
+        weight: Math.max(0, Math.min(70, Math.round((Number(r.weight) || 0) * 0.75))),
+      }));
+    };
+
     // Try to parse JSON
     const parsedResult = parseJSONFromText(text);
     if (parsedResult) {
@@ -658,12 +681,12 @@ CRITICAL REQUIREMENTS:
             marketImpliedProbability: 50
           },
           riskDistribution: [
-            { factor: "Injury Uncertainty", weight: 20 },
-            { factor: "Pace Variance", weight: 17 },
-            { factor: "Blowout Risk", weight: 17 },
-            { factor: "Three-Point Variance", weight: 16 },
-            { factor: "Late-Game Execution", weight: 15 },
-            { factor: "Referee Impact", weight: 15 }
+            { factor: "Key Injury Status", weight: 32 },
+            { factor: "Rotation/Minutes Volatility", weight: 28 },
+            { factor: "Pace Volatility", weight: 24 },
+            { factor: "Shooting Variance", weight: 26 },
+            { factor: "Foul Trouble/Referee Impact", weight: 18 },
+            { factor: "Late-Game Execution Risk", weight: 22 }
           ]
         }
       } : {
@@ -685,16 +708,19 @@ CRITICAL REQUIREMENTS:
             marketImpliedProbability: 50
           },
           riskDistribution: [
-            { factor: "Statistical Variance", weight: 18 },
-            { factor: "Information Asymmetry", weight: 17 },
-            { factor: "Timing Risk", weight: 17 },
-            { factor: "Market Volatility", weight: 16 },
-            { factor: "Injury Impact", weight: 16 },
-            { factor: "Game Script Risk", weight: 16 }
+            { factor: "Key Injury/Availability", weight: 30 },
+            { factor: "Role/Usage Volatility", weight: 24 },
+            { factor: "Minutes/Rotation Risk", weight: 26 },
+            { factor: "Opponent Matchup Risk", weight: 22 },
+            { factor: "Blowout/Game Script Risk", weight: 20 },
+            { factor: "Market Information Risk", weight: 18 }
           ]
         }
       };
     }
+
+    // Ensure risk distribution is not forced to sum to 100
+    adjustRiskDistribution(structuredData);
 
     // Cache the full response for 5 minutes
     await CacheService.set(cacheKey, text, 300);
