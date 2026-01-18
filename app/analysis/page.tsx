@@ -26,6 +26,7 @@ import {
   Award,
   Flame
 } from "lucide-react";
+import { getNBATeamLogo } from "@/lib/utils/nbaLogos";
 
 interface AnalysisData {
   type: "game" | "prop";
@@ -377,7 +378,7 @@ function AnalysisContent() {
               className="space-y-10"
             >
               {/* Market Header - Centered */}
-              <div className="relative border-b border-white/10 pb-16 pt-8 text-center overflow-hidden">
+              <div className="relative border-b border-white/10 pb-16 pt-8 text-center overflow-visible">
                 {/* Background image for props */}
                 {data?.type === "prop" && data?.image && (
                   <div className="absolute inset-0 -z-10">
@@ -413,12 +414,28 @@ function AnalysisContent() {
                       transition={{ duration: 0.5 }}
                       className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 mb-8"
                     >
+                      {/* Away Team */}
                       <motion.span
                         initial={{ opacity: 0, x: -30 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.6, delay: 0.1 }}
-                        className="font-bold text-white text-5xl md:text-7xl lg:text-8xl tracking-tight drop-shadow-lg"
+                        className="relative font-bold text-white text-5xl md:text-7xl lg:text-8xl tracking-tight drop-shadow-lg px-8 py-4"
                       >
+                        {/* Team Logo Background */}
+                        {getNBATeamLogo(data?.awayTeam) && (
+                          <div className="absolute -left-32 -top-20 -z-10 flex items-center justify-center" style={{ width: '600px', height: '600px' }}>
+                            <div className="relative">
+                              {/* Gradient Shadow */}
+                              <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-gray-800/20 to-transparent blur-3xl rounded-full" style={{ width: '600px', height: '600px' }} />
+                              <img 
+                                src={getNBATeamLogo(data?.awayTeam) || ''} 
+                                alt={`${data?.awayTeam} logo`}
+                                className="relative object-contain opacity-20 -rotate-12"
+                                style={{ width: '600px', height: '600px' }}
+                              />
+                            </div>
+                          </div>
+                        )}
                         {data?.awayTeam}
                       </motion.span>
                       <motion.span
@@ -429,12 +446,28 @@ function AnalysisContent() {
                       >
                         VS
                       </motion.span>
+                      {/* Home Team */}
                       <motion.span
                         initial={{ opacity: 0, x: 30 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.6, delay: 0.2 }}
-                        className="font-bold text-white text-5xl md:text-7xl lg:text-8xl tracking-tight drop-shadow-lg"
+                        className="relative font-bold text-white text-5xl md:text-7xl lg:text-8xl tracking-tight drop-shadow-lg px-8 py-4"
                       >
+                        {/* Team Logo Background */}
+                        {getNBATeamLogo(data?.homeTeam) && (
+                          <div className="absolute -right-32 -top-20 -z-10 flex items-center justify-center" style={{ width: '600px', height: '600px' }}>
+                            <div className="relative">
+                              {/* Gradient Shadow */}
+                              <div className="absolute inset-0 bg-gradient-to-l from-black/30 via-gray-800/20 to-transparent blur-3xl rounded-full" style={{ width: '600px', height: '600px' }} />
+                              <img 
+                                src={getNBATeamLogo(data?.homeTeam) || ''} 
+                                alt={`${data?.homeTeam} logo`}
+                                className="relative object-contain opacity-20 rotate-12"
+                                style={{ width: '600px', height: '600px' }}
+                              />
+                            </div>
+                          </div>
+                        )}
                         {data?.homeTeam}
                       </motion.span>
                     </motion.div>
@@ -568,12 +601,11 @@ function AnalysisContent() {
                   transition={{ delay: 0.5 }}
                   className={`w-full ${data?.type === "game" ? "bg-gradient-to-br from-orange-500/10 via-red-500/10 to-pink-500/10 border-orange-500/20" : "bg-gradient-to-br from-purple-500/10 via-pink-500/10 to-purple-500/10 border-purple-500/20"} border rounded-2xl p-6 backdrop-blur-sm mb-6`}
                 >
-                  <div className="mb-4">
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 mb-1">
-                      <Award className={`w-4 h-4 ${data?.type === "game" ? "text-orange-400" : "text-purple-400"}`} />
-                      AI Recommendation
+                  <div className="mb-4 flex items-center justify-center">
+                    <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-3">
+                      <Award className={`w-6 h-6 ${data?.type === "game" ? "text-orange-400" : "text-purple-400"}`} />
+                      SWISH AI RECOMMENDS
                     </h3>
-                    <p className="text-xs text-gray-400 ml-6">{polymarketRec.marketType}</p>
                   </div>
                   
                   <div className="flex items-start justify-between mb-4">

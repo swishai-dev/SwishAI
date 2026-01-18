@@ -368,7 +368,8 @@ After the markdown, include a VALID JSON block with this EXACT schema:
       { "factor": "Pace Variance", "weight": number (0-100) },
       { "factor": "Blowout Risk", "weight": number (0-100) },
       { "factor": "Three-Point Variance", "weight": number (0-100) },
-      { "factor": "Late-Game Execution", "weight": number (0-100) }
+      { "factor": "Late-Game Execution", "weight": number (0-100) },
+      { "factor": "Referee Impact", "weight": number (0-100) }
     ]
   }
 }
@@ -382,6 +383,7 @@ CRITICAL REQUIREMENTS:
 - All numbers in JSON must be within specified ranges (use integers for confidence, edgeScore, impact, weight; use numbers for probabilities).
 - "recommendedSide" MUST be one of: "home", "away", "over", "under", or "none"
 - "recommendationReason" MUST provide a clear, specific explanation of why this recommendation is made
+- "riskDistribution" MUST include all 6 factors listed above with weights that sum to approximately 100
 - If "recommendedSide" is "none", explain why no clear recommendation exists
 - IMPORTANT: The JSON block MUST be wrapped in triple backticks with "json" language tag: \`\`\`json ... \`\`\`
 - IMPORTANT: Ensure all JSON strings are properly escaped and all brackets/braces are balanced
@@ -509,7 +511,9 @@ After the markdown, include a VALID JSON block with this EXACT schema:
       { "factor": "Statistical Variance", "weight": number (0-100) },
       { "factor": "Information Asymmetry", "weight": number (0-100) },
       { "factor": "Timing Risk", "weight": number (0-100) },
-      { "factor": "Market Volatility", "weight": number (0-100) }
+      { "factor": "Market Volatility", "weight": number (0-100) },
+      { "factor": "Injury Impact", "weight": number (0-100) },
+      { "factor": "Game Script Risk", "weight": number (0-100) }
     ]
   }
 }
@@ -524,7 +528,7 @@ CRITICAL REQUIREMENTS:
 - "recommendedOption" MUST be the EXACT option name from the market list above (case-sensitive), or "none"
 - "recommendationReason" MUST provide a clear, specific explanation referencing the strongest supporting factor
 - "keyFactors" MUST include all 5 factors listed above with impact scores
-- "riskDistribution" MUST include all 4 factors listed above with weights that sum to approximately 100
+- "riskDistribution" MUST include all 6 factors listed above with weights that sum to approximately 100
 - If "recommendedOption" is "none", "recommendationReason" must explain why no clear recommendation exists
 - "modelProbability" should reflect your statistical assessment, "marketImpliedProbability" should reflect current market pricing
 - IMPORTANT: The JSON block MUST be wrapped in triple backticks with "json" language tag: \`\`\`json ... \`\`\`
@@ -654,9 +658,12 @@ CRITICAL REQUIREMENTS:
             marketImpliedProbability: 50
           },
           riskDistribution: [
-            { factor: "Injuries", weight: 33 },
-            { factor: "Pace Variance", weight: 33 },
-            { factor: "Blowout Risk", weight: 34 }
+            { factor: "Injury Uncertainty", weight: 20 },
+            { factor: "Pace Variance", weight: 17 },
+            { factor: "Blowout Risk", weight: 17 },
+            { factor: "Three-Point Variance", weight: 16 },
+            { factor: "Late-Game Execution", weight: 15 },
+            { factor: "Referee Impact", weight: 15 }
           ]
         }
       } : {
@@ -678,10 +685,12 @@ CRITICAL REQUIREMENTS:
             marketImpliedProbability: 50
           },
           riskDistribution: [
-            { factor: "Statistical Variance", weight: 25 },
-            { factor: "Information Asymmetry", weight: 25 },
-            { factor: "Timing Risk", weight: 25 },
-            { factor: "Market Volatility", weight: 25 }
+            { factor: "Statistical Variance", weight: 18 },
+            { factor: "Information Asymmetry", weight: 17 },
+            { factor: "Timing Risk", weight: 17 },
+            { factor: "Market Volatility", weight: 16 },
+            { factor: "Injury Impact", weight: 16 },
+            { factor: "Game Script Risk", weight: 16 }
           ]
         }
       };
