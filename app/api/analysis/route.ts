@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/db";
+import { db as prisma } from "@/lib/db";
 import { generateAnalysis } from "@/lib/ai/analyst";
 import { fetchMatchupContext } from "@/lib/data/sports-api";
 import crypto from "crypto";

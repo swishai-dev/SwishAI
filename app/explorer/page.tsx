@@ -29,16 +29,6 @@ export default function ExplorerPage() {
   // Pagination
   const [page, setPage] = useState(1);
   const itemsPerPage = activeTab === "games" ? 10 : 9;
-  
-  
-  // Analysis modal
-  const [analysisModal, setAnalysisModal] = useState<{
-    open: boolean;
-    type: "game" | "prop";
-    data: any;
-    analysis: string | null;
-    loading: boolean;
-  }>({ open: false, type: "game", data: null, analysis: null, loading: false });
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -66,25 +56,18 @@ export default function ExplorerPage() {
     setPage(1);
   }, [search, activeTab]);
 
-  const analyzeData = async (type: "game" | "prop", data: any) => {
-    setAnalysisModal({ open: true, type, data, analysis: null, loading: true });
+  const analyzeData = (type: "game" | "prop", data: any) => {
+    // Prepare data for the analysis page
+    const analysisData = {
+      type,
+      ...data,
+    };
     
-    try {
-      const res = await fetch("/api/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type, data }),
-      });
-      const result = await res.json();
-      
-      if (result.error) {
-        setAnalysisModal((prev) => ({ ...prev, analysis: `Error: ${result.error}`, loading: false }));
-      } else {
-        setAnalysisModal((prev) => ({ ...prev, analysis: result.analysis, loading: false }));
-      }
-    } catch (error) {
-      setAnalysisModal((prev) => ({ ...prev, analysis: "Failed to generate analysis.", loading: false }));
-    }
+    // Encode data for URL
+    const encodedData = encodeURIComponent(JSON.stringify(analysisData));
+    
+    // Navigate to analysis page
+    window.location.href = `/analysis?data=${encodedData}`;
   };
 
   const formatPrice = (price: number) => `${Math.round(price * 100)}¢`;
@@ -474,103 +457,6 @@ export default function ExplorerPage() {
         )}
       </main>
 
-      {/* Analysis Modal */}
-      <AnimatePresence>
-        {analysisModal.open && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4"
-            onClick={() => setAnalysisModal({ ...analysisModal, open: false })}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-gradient-to-br from-[#111] to-[#0a0a0a] rounded-3xl border border-white/10 max-w-lg w-full max-h-[80vh] overflow-hidden shadow-2xl"
-            >
-              {/* Modal Header */}
-              <div className={`p-5 border-b border-white/10 bg-gradient-to-r ${
-                analysisModal.type === "game" 
-                  ? "from-orange-500/10 to-red-500/10" 
-                  : "from-purple-500/10 to-pink-500/10"
-              }`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br ${
-                      analysisModal.type === "game" 
-                        ? "from-orange-500 to-red-500" 
-                        : "from-purple-500 to-pink-500"
-                    } shadow-lg`}>
-                      <Sparkles className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-white">AI Analysis</h3>
-                      <p className="text-[11px] text-gray-400">Gemini Flash 2.0</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setAnalysisModal({ ...analysisModal, open: false })}
-                    className="p-2 rounded-xl hover:bg-white/10 text-gray-400 hover:text-white transition-all"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Modal Content */}
-              <div className="p-5 overflow-y-auto max-h-[60vh]">
-                {/* Data Summary */}
-                <div className={`rounded-xl p-4 mb-4 border ${
-                  analysisModal.type === "game"
-                    ? "bg-orange-500/5 border-orange-500/20"
-                    : "bg-purple-500/5 border-purple-500/20"
-                }`}>
-                  {analysisModal.type === "game" && analysisModal.data && (
-                    <div>
-                      <div className={`flex items-center gap-3 text-lg font-bold ${
-                        analysisModal.type === "game" ? "text-orange-400" : "text-purple-400"
-                      }`}>
-                        <span>{analysisModal.data.awayTeam}</span>
-                        <span className="text-orange-500/60 text-sm">VS</span>
-                        <span>{analysisModal.data.homeTeam}</span>
-                      </div>
-                      <div className="text-[11px] text-gray-400 mt-1 flex items-center gap-2">
-                        <Calendar className="w-3 h-3" />
-                        {formatDate(analysisModal.data.startTime)}
-                      </div>
-                    </div>
-                  )}
-                  {analysisModal.type === "prop" && analysisModal.data && (
-                    <div className="text-purple-300 font-bold">{analysisModal.data.question}</div>
-                  )}
-                </div>
-
-                {/* Analysis */}
-                {analysisModal.loading ? (
-                  <div className="flex flex-col items-center justify-center py-16">
-                    <div className="relative">
-                      <div className={`absolute inset-0 rounded-full blur-xl opacity-50 animate-pulse ${
-                        analysisModal.type === "game" ? "bg-orange-500" : "bg-purple-500"
-                      }`} />
-                      <Loader2 className={`relative w-10 h-10 animate-spin ${
-                        analysisModal.type === "game" ? "text-orange-500" : "text-purple-500"
-                      }`} />
-                    </div>
-                    <p className="mt-4 text-gray-400 text-sm">Generating analysis...</p>
-                  </div>
-                ) : (
-                  <div className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">
-                    {analysisModal.analysis}
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
