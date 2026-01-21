@@ -4,7 +4,7 @@ AI-powered analysis platform for Polymarket basketball prediction markets.
 
 ## Overview
 
-SwishAI is a specialized analytics platform that combines AI-driven insights with real-time market data from Polymarket. The system analyzes basketball prediction markets (NBA, EuroLeague, NCAA) to provide professional-grade probability assessments, edge detection, and market intelligence.
+SwishAI is a specialized analytics platform that combines AI-driven insights with real-time market data from Polymarket. The system analyzes basketball prediction markets (NBA) to provide professional-grade probability assessments, edge detection, and market intelligence.
 
 ## Features
 
