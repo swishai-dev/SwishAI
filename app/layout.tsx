@@ -12,6 +12,9 @@ const orbitron = Orbitron({
 export const metadata: Metadata = {
   title: "SwishAi - Basketball Prediction Agent",
   description: "AI-powered basketball prediction markets analysis",
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({
